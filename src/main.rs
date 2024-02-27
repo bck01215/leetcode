@@ -1,32 +1,48 @@
-use std::cmp::Reverse;
-use std::collections::BinaryHeap;
-use std::collections::HashMap;
+#[derive(Debug, PartialEq, Eq)]
+pub struct TreeNode {
+    pub val: i32,
+    pub left: Option<Rc<RefCell<TreeNode>>>,
+    pub right: Option<Rc<RefCell<TreeNode>>>,
+}
+
+impl TreeNode {
+    #[inline]
+    pub fn new(val: i32) -> Self {
+        TreeNode {
+            val,
+            left: None,
+            right: None,
+        }
+    }
+}
+
+use std::cell::RefCell;
+use std::rc::Rc;
 pub struct Solution {}
 impl Solution {
-    pub fn find_cheapest_price(n: i32, flights: Vec<Vec<i32>>, src: i32, dst: i32, k: i32) -> i32 {
-        let mut flight_map = HashMap::new();
-        for flight_vec in flights {
-            let inner_map = flight_map.entry(flight_vec[0]).or_insert(HashMap::new());
-            inner_map.insert(flight_vec[1], flight_vec[2]);
+    pub fn diameter_of_binary_tree(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        Self::dfs(root).1 - 1
+    }
+
+    fn dfs(root: Option<Rc<RefCell<TreeNode>>>) -> (i32, i32) {
+        if root.is_none() {
+            return (0, 0);
         }
-        println!("{:?}", flight_map);
-        let mut heap: BinaryHeap<Reverse<(i32, i32, i32)>> = BinaryHeap::new();
-        heap.push(Reverse((0 as i32, src, k + 1)));
-        while heap.len() > 0 {
-            let Reverse((p, i, k)) = heap.pop().unwrap();
-            println!("{}, {}, {}", p, i, k);
-            if i == dst {
-                return p;
-            }
-            if k > 0 {
-                if let Some(inner_map) = flight_map.get(&i) {
-                    for (&next_i, &cost) in inner_map.iter() {
-                        heap.push(Reverse((p + cost, next_i, k - 1)))
-                    }
-                }
-            }
-        }
-        -1
+
+        let root = root.unwrap();
+        let left = root.borrow().left.clone();
+        let right = root.borrow().right.clone();
+
+        let nodes_left = Self::dfs(left);
+        let nodes_right = Self::dfs(right);
+
+        let max_diameter_found = nodes_left
+            .1
+            .max(nodes_right.1)
+            .max(nodes_left.0 + nodes_right.0 + 1);
+        let max_children = nodes_left.0.max(nodes_right.0) + 1;
+
+        (max_children, max_diameter_found)
     }
 }
 
@@ -37,70 +53,44 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn test_1() {
-        assert_eq!(
-            700,
-            Solution::find_cheapest_price(
-                4,
-                vec![
-                    vec![0, 1, 100],
-                    vec![1, 2, 100],
-                    vec![2, 0, 100],
-                    vec![1, 3, 600],
-                    vec![2, 3, 200]
-                ],
-                0,
-                3,
-                1
-            )
-        );
+        let tree = Some(Rc::new(RefCell::new(TreeNode {
+            val: 1,
+            left: Some(Rc::new(RefCell::new(TreeNode {
+                val: 2,
+                left: None,
+                right: None,
+            }))),
+            right: None,
+        })));
+
+        assert_eq!(1, Solution::diameter_of_binary_tree(tree));
     }
     #[test]
     fn test_2() {
-        assert_eq!(
-            200,
-            Solution::find_cheapest_price(
-                3,
-                vec![vec![0, 1, 100], vec![1, 2, 100], vec![0, 2, 500]],
-                0,
-                2,
-                1
-            )
-        );
-    }
-    #[test]
-    fn test_3() {
-        assert_eq!(
-            500,
-            Solution::find_cheapest_price(
-                3,
-                vec![vec![0, 1, 100], vec![1, 2, 100], vec![0, 2, 500]],
-                0,
-                2,
-                0
-            )
-        );
-    }
-    #[test]
-    fn test_4() {
-        assert_eq!(
-            500,
-            Solution::find_cheapest_price(
-                5,
-                vec![
-                    vec![4, 1, 1],
-                    vec![1, 2, 3],
-                    vec![0, 3, 2],
-                    vec![0, 4, 10],
-                    vec![3, 1, 1],
-                    vec![1, 4, 3]
-                ],
-                2,
-                1,
-                1
-            )
-        );
+        let tree = Some(Rc::new(RefCell::new(TreeNode {
+            val: 1,
+            left: Some(Rc::new(RefCell::new(TreeNode {
+                val: 2,
+                left: Some(Rc::new(RefCell::new(TreeNode {
+                    val: 4,
+                    left: None,
+                    right: None,
+                }))),
+                right: Some(Rc::new(RefCell::new(TreeNode {
+                    val: 5,
+                    left: None,
+                    right: None,
+                }))),
+            }))),
+            right: Some(Rc::new(RefCell::new(TreeNode {
+                val: 3,
+                left: None,
+                right: None,
+            }))),
+        })));
+
+        assert_eq!(3, Solution::diameter_of_binary_tree(tree));
     }
 }
