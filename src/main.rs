@@ -20,29 +20,18 @@ use std::cell::RefCell;
 use std::rc::Rc;
 pub struct Solution {}
 impl Solution {
-    pub fn diameter_of_binary_tree(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
-        Self::dfs(root).1 - 1
-    }
-
-    fn dfs(root: Option<Rc<RefCell<TreeNode>>>) -> (i32, i32) {
-        if root.is_none() {
-            return (0, 0);
+    pub fn find_bottom_left_value(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        let mut level = Vec::from([root.unwrap()]);
+        let mut ans: i32 = 0;
+        while !level.is_empty() {
+            ans = level[0].borrow().val;
+            level = level
+                .into_iter()
+                .flat_map(|n| [n.borrow().left.clone(), n.borrow().right.clone()])
+                .filter_map(|n| n)
+                .collect();
         }
-
-        let root = root.unwrap();
-        let left = root.borrow().left.clone();
-        let right = root.borrow().right.clone();
-
-        let nodes_left = Self::dfs(left);
-        let nodes_right = Self::dfs(right);
-
-        let max_diameter_found = nodes_left
-            .1
-            .max(nodes_right.1)
-            .max(nodes_left.0 + nodes_right.0 + 1);
-        let max_children = nodes_left.0.max(nodes_right.0) + 1;
-
-        (max_children, max_diameter_found)
+        ans
     }
 }
 
@@ -56,16 +45,20 @@ mod tests {
     #[test]
     fn test_1() {
         let tree = Some(Rc::new(RefCell::new(TreeNode {
-            val: 1,
+            val: 2,
             left: Some(Rc::new(RefCell::new(TreeNode {
-                val: 2,
+                val: 1,
                 left: None,
                 right: None,
             }))),
-            right: None,
+            right: Some(Rc::new(RefCell::new(TreeNode {
+                val: 3,
+                left: None,
+                right: None,
+            }))),
         })));
 
-        assert_eq!(1, Solution::diameter_of_binary_tree(tree));
+        assert_eq!(1, Solution::find_bottom_left_value(tree));
     }
     #[test]
     fn test_2() {
@@ -78,19 +71,27 @@ mod tests {
                     left: None,
                     right: None,
                 }))),
-                right: Some(Rc::new(RefCell::new(TreeNode {
+                right: None,
+            }))),
+            right: Some(Rc::new(RefCell::new(TreeNode {
+                val: 3,
+                left: Some(Rc::new(RefCell::new(TreeNode {
                     val: 5,
+                    left: Some(Rc::new(RefCell::new(TreeNode {
+                        val: 7,
+                        left: None,
+                        right: None,
+                    }))),
+                    right: None,
+                }))),
+                right: Some(Rc::new(RefCell::new(TreeNode {
+                    val: 6,
                     left: None,
                     right: None,
                 }))),
             }))),
-            right: Some(Rc::new(RefCell::new(TreeNode {
-                val: 3,
-                left: None,
-                right: None,
-            }))),
         })));
 
-        assert_eq!(3, Solution::diameter_of_binary_tree(tree));
+        assert_eq!(7, Solution::find_bottom_left_value(tree));
     }
 }
