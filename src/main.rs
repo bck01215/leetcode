@@ -21,7 +21,7 @@ mod tests {
     #[test]
     fn test_1() {
         assert_eq!(
-            "abcd".to_string(),
+            "cdba".to_string(),
             Solution::custom_sort_string("cba".to_string(), "abcd".to_string())
         );
     }
