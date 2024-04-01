@@ -1,13 +1,11 @@
 pub struct Solution {}
 impl Solution {
-    pub fn custom_sort_string(order: String, str: String) -> String {
-        let order_map = order.chars().enumerate().fold([0; 26], |mut acc, (i, c)| {
-            acc[c as usize - 'a' as usize] = i;
-            acc
-        });
-        let mut s = str.into_bytes();
-        s.sort_unstable_by_key(|&c| order_map[c as usize - 'a' as usize]);
-        String::from_utf8(s).unwrap()
+    pub fn length_of_last_word(s: String) -> i32 {
+        s.split_whitespace()
+            .collect::<Vec<&str>>()
+            .last()
+            .unwrap_or(&"")
+            .len() as i32
     }
 }
 
@@ -20,16 +18,13 @@ mod tests {
     use super::*;
     #[test]
     fn test_1() {
-        assert_eq!(
-            "cdba".to_string(),
-            Solution::custom_sort_string("cba".to_string(), "abcd".to_string())
-        );
+        assert_eq!(5, Solution::length_of_last_word("Hello World".to_string()));
     }
     #[test]
     fn test_2() {
         assert_eq!(
-            "bcad".to_string(),
-            Solution::custom_sort_string("bcafg".to_string(), "abcd".to_string())
+            4,
+            Solution::length_of_last_word("   fly me   to   the moon  ".to_string())
         );
     }
 }
