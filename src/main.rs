@@ -1,10 +1,7 @@
 pub struct Solution {}
 impl Solution {
     pub fn find_complement(num: i32) -> i32 {
-        let mut mask = 0;
-        while mask < num {
-            mask = (mask << 1) | 1;
-        }
+        let mask = (1 << (32 - num.leading_zeros())) - 1;
         !num & mask
     }
 }
